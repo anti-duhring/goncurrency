@@ -3,6 +3,7 @@ package clients
 import (
 	"context"
 	"database/sql"
+	"errors"
 )
 
 type Repository interface {
@@ -24,6 +25,9 @@ func (r *RepositoryPostgres) FindOneByID(ctx context.Context, id int) (*Client, 
 
 	err := row.Scan(&client.ID, &client.AccountLimit, &client.Balance)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrClientNotFound
+		}
 		return nil, err
 	}
 
