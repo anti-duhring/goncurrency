@@ -20,7 +20,7 @@ func Init(DB *sql.DB) *fiber.App {
 	clientsService = clients.NewService(clientsRepository)
 
 	transactionsRepository := transactions.NewRepositoryPostgres(DB)
-	transactionsService = transactions.NewService(transactionsRepository)
+	transactionsService = transactions.NewService(transactionsRepository, clientsRepository)
 
 	app.Get("/health", func(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{

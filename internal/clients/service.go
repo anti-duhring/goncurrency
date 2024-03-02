@@ -20,7 +20,7 @@ type ClientExtract struct {
 }
 
 func (s *Service) GetClientExtract(ctx context.Context, id int) (*ClientExtract, error) {
-	client, err := s.Repository.FindOneByID(ctx, id)
+	client, err := s.Repository.FindOneByID(ctx, id, nil)
 	if err != nil {
 		return nil, err
 	}

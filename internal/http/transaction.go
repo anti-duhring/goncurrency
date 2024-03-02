@@ -1,9 +1,11 @@
 package http
 
 import (
+	"errors"
 	"strconv"
 
 	"github.com/anti-duhring/goncurrency/internal/transactions"
+	"github.com/anti-duhring/goncurrency/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -25,11 +27,21 @@ func transaction(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
-	err = transactionsService.CreateTransaction(c.Context(), id, &transactions.Transaction{
+	clientExtract, err := transactionsService.CreateTransaction(c.Context(), id, &transactions.Transaction{
 		Amount:      request.Value,
 		Operation:   request.Type,
 		Description: request.Description,
 	})
+	if err != nil {
+		if errors.Is(err, transactions.ErrAccountLimitExceeded) {
+			return c.SendStatus(fiber.StatusUnprocessableEntity)
+		}
+		logger.Error("error calling service.CreateTransaction", err)
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
 
-	return nil
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"limite": clientExtract.AccountLimit,
+		"saldo":  clientExtract.Balance,
+	})
 }

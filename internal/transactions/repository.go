@@ -7,7 +7,8 @@ import (
 
 type Repository interface {
 	FindManyByClientID(ctx context.Context, id int, limit int) (*[]Transaction, error)
-	InsertOne(ctx context.Context, id int, t *Transaction) error
+	InsertOne(ctx context.Context, input InsertOneInput, tx *sql.Tx) error
+	WithTransaction(ctx context.Context, fn func(tx *sql.Tx) error) error
 }
 
 type RepositoryPostgres struct {
@@ -36,7 +37,33 @@ func (r *RepositoryPostgres) FindManyByClientID(ctx context.Context, id int, lim
 	return &transactions, nil
 }
 
-func (r *RepositoryPostgres) InsertOne(ctx context.Context, id int, t *Transaction) error {
-	_, err := r.DB.ExecContext(ctx, "INSERT INTO transactions (client_id, amount, operation, description) VALUES ($1, $2, $3, $4)", id, t.Amount, t.Operation, t.Description)
+type InsertOneInput struct {
+	ID          int
+	Transaction *Transaction
+}
+
+func (r *RepositoryPostgres) InsertOne(ctx context.Context, input InsertOneInput, tx *sql.Tx) error {
+	query := "INSERT INTO transactions (client_id, amount, operation, description) VALUES ($1, $2, $3, $4)"
+
+	if tx != nil {
+		_, err := tx.ExecContext(ctx, query, input.ID, input.Transaction.Amount, input.Transaction.Operation, input.Transaction.Description)
+		return err
+	}
+
+	_, err := r.DB.ExecContext(ctx, query, input.ID, input.Transaction.Amount, input.Transaction.Operation, input.Transaction.Description)
 	return err
+}
+
+func (r *RepositoryPostgres) WithTransaction(ctx context.Context, fn func(tx *sql.Tx) error) error {
+	tx, err := r.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := fn(tx); err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
