@@ -1,19 +1,19 @@
 CREATE TABLE
   clients (
     id INT PRIMARY KEY,
-    account_limit INTEGER NOT NULL,
-    balance INTEGER NOT NULL DEFAULT 0
+    account_limit INT NOT NULL,
+    balance INT NOT NULL DEFAULT 0
   );
 
 CREATE UNLOGGED TABLE
   transactions (
     id SERIAL PRIMARY KEY,
-    client_id INTEGER NOT NULL,
-    amount INTEGER NOT NULL,
+    client_id SMALLINT NOT NULL,
+    amount INT NOT NULL,
     operation CHAR(1) NOT NULL,
     description VARCHAR(10) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    CONSTRAINT fk_transactions_client_id FOREIGN KEY (client_id) REFERENCES clients (id)
+    FOREIGN KEY (client_id) REFERENCES clients (id)
   );
 
 ALTER TABLE

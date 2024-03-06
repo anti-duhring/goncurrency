@@ -8,34 +8,55 @@ services:
     hostname: api1
     depends_on:
       - db
-    restart: on-failure
-    networks:
-      - default
+    network_mode: host
     expose:
-      - 80
+      - 3000
     environment:
-      API_PORT: 80
-      DB_HOST: db
+      API_PORT: 3000
+      DB_HOST: localhost
       DB_USER: postgres
       DB_NAME: postgres
       DB_PASSWORD: postgres
       DB_PORT: 5432
+    deploy:
+      resources:
+        limits:
+          cpus: "0.20"
+          memory: "30MB"
 
   api2:
     <<: *api
     hostname: api2
-
+    expose:
+      - 3001
+    environment:
+      API_PORT: 3001
+      DB_HOST: localhost
+      DB_USER: postgres
+      DB_NAME: postgres
+      DB_PASSWORD: postgres
+      DB_PORT: 5432
+    deploy:
+      resources:
+        limits:
+          cpus: "0.20"
+          memory: "30MB"
+  
   nginx:
     image: nginx:latest
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "9999:9999" 
+    network_mode: host
+    depends_on:
+      - api1
+      - api2
     deploy:
       resources:
         limits:
-          cpus: "0.17"
-          memory: "10MB"
+          cpus: "0.10"
+          memory: "50MB"
 
   db:
     image: postgres:latest
@@ -46,15 +67,14 @@ services:
       - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
+    network_mode: host
     volumes:
       - ./script.sql:/docker-entrypoint-initdb.d/script.sql
+      - ./postgresql.conf:/docker-entrypoint-initdb.d/postgresql.conf
+    command: postgres -c config_file=/docker-entrypoint-initdb.d/postgresql.conf
     deploy:
       resources:
         limits:
-          cpus: "0.13"
-          memory: "140MB"
+          cpus: "1"
+          memory: "440MB"
 
-networks:
-  default:
-    driver: bridge
-    name: rinha-network

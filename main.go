@@ -22,6 +22,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	defer DB.Close()
+
 	App = http.Init(DB)
 
 	port := os.Getenv("API_PORT")

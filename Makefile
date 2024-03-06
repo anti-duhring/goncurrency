@@ -10,5 +10,9 @@ up:
 	docker compose down
 	docker compose up 
 
+uplog:
+	docker compose down -v
+	docker compose up | tee .log
+
 build:
-	go build -o api .
+	CGO_ENABLED=0 go build -o api .

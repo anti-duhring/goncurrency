@@ -14,9 +14,9 @@ func NewService(repository Repository) *Service {
 }
 
 type ClientExtract struct {
-	Date         string `json:"date"`
-	AccountLimit int    `json:"account_limit"`
-	Balance      int    `json:"balance"`
+	Date         string `json:"data_extrato"`
+	AccountLimit int    `json:"limite"`
+	Balance      int    `json:"total"`
 }
 
 func (s *Service) GetClientExtract(ctx context.Context, id int) (*ClientExtract, error) {

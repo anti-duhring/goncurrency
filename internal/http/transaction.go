@@ -27,6 +27,14 @@ func transaction(c *fiber.Ctx) error {
 		return c.SendStatus(fiber.StatusBadRequest)
 	}
 
+	if request.Type != "d" && request.Type != "c" {
+		return c.SendStatus(fiber.StatusUnprocessableEntity)
+	}
+
+	if len(request.Description) > 10 || len(request.Description) < 1 {
+		return c.SendStatus(fiber.StatusUnprocessableEntity)
+	}
+
 	clientExtract, err := transactionsService.CreateTransaction(c.Context(), id, &transactions.Transaction{
 		Amount:      request.Value,
 		Operation:   request.Type,

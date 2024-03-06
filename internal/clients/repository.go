@@ -23,7 +23,7 @@ func (r *RepositoryPostgres) FindOneByID(ctx context.Context, id int, tx *sql.Tx
 	var client Client
 	var row *sql.Row
 
-	query := "SELECT * FROM clients WHERE id = $1 FOR UPDATE"
+	query := "SELECT account_limit, balance FROM clients WHERE id = $1 FOR UPDATE"
 
 	if tx != nil {
 		row = tx.QueryRowContext(ctx, query, id)
@@ -31,7 +31,7 @@ func (r *RepositoryPostgres) FindOneByID(ctx context.Context, id int, tx *sql.Tx
 		row = r.DB.QueryRowContext(ctx, query, id)
 	}
 
-	err := row.Scan(&client.ID, &client.AccountLimit, &client.Balance)
+	err := row.Scan(&client.AccountLimit, &client.Balance)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrClientNotFound
